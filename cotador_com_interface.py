@@ -2,6 +2,7 @@ import PySimpleGUI as sg
 import requests
 import time
 from datetime import datetime
+from threading import Event
 lista = ['EUR','USD','CAD','AUD','JPY','BOB','PYG','ARS','COP']
 
 def cotar():
@@ -22,18 +23,18 @@ def tela_menu():
 def tela_config():
     layout = [[sg.Text(f'A moeda a ser cotada é: {moeda_escolhida}')],
               [sg.Text(f'A cotação atual é: {cotar()[0]} ')],
-              [sg.Text('Digite o valor que procura: '), sg.InputText(key='valor_proc')],
-              [sg.Text('Digite o tempo de atualização: '), sg.InputText(key='tempo_atualizacao')],
+              [sg.Text('Digite o valor que procura: '), sg.InputText(5.40, key='valor_proc')],
+              [sg.Text('Digite o tempo de atualização: '), sg.InputText(10, key='tempo_atualizacao')],
               [sg.Button('Avançar'), sg.Button('Fechar')]]
     return sg.Window('Configurações', layout, finalize=True)
 
 
 def tela_cotacao():
     layout = [[sg.Text(f'A moeda a ser cotada é: {moeda}')],
-              [sg.Text(key='loop_cotacao')],
               [sg.Text(f'Avisaremos quando chegar em: {preco_alvo}')],
-              [sg.Text(key='loop_atualiz')],
-              [sg.Button('Iniciar'), sg.Button('Fechar')]]
+              [sg.Text(f"A cotação atual é: {cotar()[0]}.", key='loop_cotacao')],
+              [sg.Text(f"Atualizado em: {cotar()[1]}.", key='loop_atualiz')],
+              [sg.Button('Atualizar'), sg.Button('Fechar')]]
     return sg.Window('Cotando...', layout, finalize=True)
 
 janela1, janela2, janela3 = tela_menu(), None, None
@@ -43,24 +44,25 @@ while True:
     if (window == janela1 and event == sg.WIN_CLOSED) or (window == janela2 and event == sg.WIN_CLOSED) or (window == janela3 and event == sg.WIN_CLOSED) or (window == janela2 and event == 'Fechar') or (window == janela3 and event == 'Fechar'):
         break
 
-    if window == janela1 and event in lista:
+    elif window == janela1 and event in lista:
         moeda_escolhida = (event)
         moeda = (moeda_escolhida+'BRL')
         janela1.hide()
         janela2 = tela_config()
 
-    if window == janela2 and event == 'Avançar':
+    elif window == janela2 and event == 'Avançar':
         preco_alvo = values['valor_proc']
         tempo = values['tempo_atualizacao']
         janela2.hide()
         janela3 = tela_cotacao()
 
-    if window == janela3 and event == 'Inicio':
+    elif window == janela3 and event == 'Inicio':
         janela3.hide()
         janela1 = tela_menu()
 
-    if window == janela3 and event == 'Iniciar':
+    elif window == janela3 and event == 'Atualizar':
+        #Event().wait(5)
         cotar()
         janela3['loop_cotacao'].update(f"A cotação atual é: {cotar()[0]}.")
         janela3['loop_atualiz'].update(f"Atualizado em: {cotar()[1]}.")
-        time.sleep(int(tempo))
+
